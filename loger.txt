@@ -1,0 +1,1 @@
+12:23:25.097 [main] INFO  org.server.Main - сервер стартовал

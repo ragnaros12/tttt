@@ -15,44 +15,48 @@ public class DataBase {
     private static Connection sqlServer;
     private static DataBase Instance;
     private static MessageDigest Sha1;
+
     private static final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public static String createScript = "CREATE table IF NOT EXISTS Users(\n" +
-            "\tid serial PRIMARY KEY,\n" +
-            "\tlogin varchar(255),\n" +
-            "\tpassword varchar(255)\n" + ");\n" + "\n" +
-            "CREATE table IF NOT EXISTS Car\n" + "(\n" +
-            " cool boolean NOT NULL,\n" +
-            " car_id serial PRIMARY KEY\n" + ");\n" +
-            "CREATE table IF NOT EXISTS Coordinates\n" + "(\n" +
-            " x real NOT NULL,\n" +
-            " y integer NOT NULL,\n" +
-            " coor_id serial PRIMARY KEY\n" + ");\n" + "\n" + "\n" +
-            "CREATE table IF NOT EXISTS HumanBeing\n" + "(\n" +
-            " id serial PRIMARY KEY,\n" +
-            " name VARCHAR(255),\n" +
-            " coordinate_id integer NOT NULL,\n" +
-            " car_id integer NOT NULL,\n" +
-            " creationdate date NOT NULL,\n" +
-            " realhero boolean NOT NULL,\n" +
-            " hastoothpick boolean NOT NULL,\n" +
-            " impactspeed integer NOT NULL,\n" +
-            " weapontype varchar(255) NOT NULL,\n" +
-            " mood varchar(255) NOT NULL,\n" +
-            " creator integer NOT NULL,\n" +
-            " FOREIGN KEY (car_id)\n" +
-            " REFERENCES Car (car_id) MATCH SIMPLE\n" +
-            " ON UPDATE CASCADE\n" +
-            " ON DELETE CASCADE,\n" +
-            " FOREIGN KEY (coordinate_id)\n" +
-            " REFERENCES Coordinates (coor_id) MATCH SIMPLE\n" +
-            " ON UPDATE CASCADE\n" +
-            " ON DELETE CASCADE\n" + ")";
+    public static String createScript = "CREATE table IF NOT EXISTS Users(" +
+            "id serial PRIMARY KEY," +
+            "login varchar(255)," +
+            "password varchar(255)" + ");" +
+            "CREATE table IF NOT EXISTS Car" + "(" +
+            " cool boolean NOT NULL," +
+            " car_id serial PRIMARY KEY" + ");" +
+            "CREATE table IF NOT EXISTS Coordinates" + "(" +
+            " x real NOT NULL," +
+            " y integer NOT NULL," +
+            " coor_id serial PRIMARY KEY" + ");" + "" + "" +
+            "CREATE table IF NOT EXISTS HumanBeing" + "(" +
+            " id serial PRIMARY KEY," +
+            " name VARCHAR(255)," +
+            " coordinate_id integer NOT NULL," +
+            " car_id integer NOT NULL," +
+            " creationdate date NOT NULL," +
+            " realhero boolean NOT NULL," +
+            " hastoothpick boolean NOT NULL," +
+            " impactspeed integer NOT NULL," +
+            " weapontype varchar(255) NOT NULL," +
+            " mood varchar(255) NOT NULL," +
+            " creator integer NOT NULL," +
+            " FOREIGN KEY (car_id)" +
+            " REFERENCES Car (car_id) MATCH SIMPLE" +
+            " ON UPDATE CASCADE" +
+            " ON DELETE CASCADE," +
+            " FOREIGN KEY (coordinate_id)" +
+            " REFERENCES Coordinates (coor_id) MATCH SIMPLE" +
+            " ON UPDATE CASCADE" +
+            " ON DELETE CASCADE" + ")";
 
     public DataBase() throws Exception {
         Class.forName("org.postgresql.Driver");
-        sqlServer = DriverManager.getConnection("jdbc:postgresql://pg:5432/studs", "s336420", "ZvysUKFLCnVIDbJH");
+        sqlServer = DriverManager.getConnection("jdbc:postgresql://localhost:5432/bddd", "postgres", "root");
         Sha1 = MessageDigest.getInstance("Sha1");
+
+        PreparedStatement statement = sqlServer.prepareStatement(createScript);
+        statement.execute();
     }
 
     public synchronized static DataBase getInstance() {
@@ -69,9 +73,9 @@ public class DataBase {
 
     public synchronized TreeSet<HumanBeing> getAll() throws SQLException {
         PreparedStatement preparedStatement = sqlServer.prepareStatement(
-                "SELECT * from public.\"HumanBeing\" \n" +
-                        "INNER JOIN public.\"Coordinates\" ON \"Coordinates\".coordinates_id = \"HumanBeing\".coordinateid\n" +
-                        "INNER JOIN public.\"Car\" ON \"Car\".car_id = \"HumanBeing\".carid "
+                "SELECT * from public.HumanBeing " +
+                        "INNER JOIN public.Coordinates ON Coordinates.coor_id = HumanBeing.coordinate_id " +
+                        "INNER JOIN public.Car ON Car.car_id = HumanBeing.car_id "
         );
 
         ResultSet set = preparedStatement.executeQuery();
@@ -101,7 +105,7 @@ public class DataBase {
 
     public synchronized void Clear() throws SQLException {
         PreparedStatement preparedStatement = sqlServer.prepareStatement(
-                "DELETE from public.\"HumanBeing\"; DELETE from public.\"Coordinates\"; DELETE from public.\"Car\""
+                "DELETE from public.HumanBeing; DELETE from public.Coordinates; DELETE from public.Car"
         );
         preparedStatement.execute();
     }
@@ -111,8 +115,8 @@ public class DataBase {
         int coorId = AddCoordinates(humanBeing.getCoordinates());
 
         PreparedStatement preparedStatement = sqlServer.prepareStatement(
-                "INSERT INTO public.\"HumanBeing\"(" +
-                        "name, coordinateid, carid, creationdate, realhero, hastoothpick, impactspeed, weapontype, mood, IdCreator)" +
+                "INSERT INTO public.HumanBeing(" +
+                        "name, coordinate_id, carid, creationdate, realhero, hastoothpick, impactspeed, weapontype, mood, IdCreator)" +
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
         );
         preparedStatement.setString(1,humanBeing.getName());
@@ -129,9 +133,9 @@ public class DataBase {
         preparedStatement.execute();
     }
     public synchronized int AddCoordinates(Coordinates c) throws SQLException {
-        PreparedStatement preparedStatement = sqlServer.prepareStatement("INSERT INTO public.\"Coordinates\"\n" +
-                "(coordinates_x, coordinates_y)\n" +
-                "\tVALUES (?, ?) RETURNING coordinates_id");
+        PreparedStatement preparedStatement = sqlServer.prepareStatement("INSERT INTO public.Coordinates" +
+                "(coordinates_x, coordinates_y)" +
+                "VALUES (?, ?) RETURNING coordinates_id");
         preparedStatement.setDouble(1, c.getX());
         preparedStatement.setInt(2, c.getY());
         ResultSet s = preparedStatement.executeQuery();
@@ -139,9 +143,9 @@ public class DataBase {
         return s.getInt(1);
     }
     public synchronized int AddCar(Car c) throws SQLException {
-        PreparedStatement preparedStatement = sqlServer.prepareStatement("INSERT INTO public.\"Car\"\n" +
-                "(car_cool)\n" +
-                "\tVALUES (?) RETURNING car_id");
+        PreparedStatement preparedStatement = sqlServer.prepareStatement("INSERT INTO public.Car" +
+                "(car_cool)" +
+                "VALUES (?) RETURNING car_id");
         preparedStatement.setBoolean(1, c.getCool());
         ResultSet s = preparedStatement.executeQuery();
         s.next();
@@ -151,7 +155,7 @@ public class DataBase {
 
     public synchronized void AddUser(String login, String password) throws SQLException {
         PreparedStatement preparedStatement = sqlServer.prepareStatement(
-                "INSERT INTO public.\"Users\"(" +
+                "INSERT INTO public.Users(" +
                         "login, password)" +
                         "VALUES (?, ?)"
         );
@@ -163,7 +167,7 @@ public class DataBase {
     public synchronized Integer Login(String login, String password){
         try {
             PreparedStatement preparedStatement = sqlServer.prepareStatement(
-                    "SELECT * FROM public.\"Users\" where login = ? AND password = ?"
+                    "SELECT * FROM public.Users where login = ? AND password = ?"
             );
             preparedStatement.setString(1, login);
             preparedStatement.setString(2, new BigInteger(1, Sha1.digest(password.getBytes())).toString(16));
@@ -179,7 +183,7 @@ public class DataBase {
 
     public void Remove(Long id)throws Exception{
         PreparedStatement preparedStatement = sqlServer.prepareStatement(
-                "DELETE from public.\"HumanBeing\" where id = ?"
+                "DELETE from public.HumanBeing where id = ?"
         );
         preparedStatement.setLong(1, id);
         preparedStatement.execute();
