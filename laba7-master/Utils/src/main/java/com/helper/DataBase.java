@@ -50,9 +50,15 @@ public class DataBase {
             " ON UPDATE CASCADE" +
             " ON DELETE CASCADE" + ")";
 
+    public static String[] args;
+
+    public static void setArgs(String[] args) {
+        DataBase.args = args;
+    }
+
     public DataBase() throws Exception {
         Class.forName("org.postgresql.Driver");
-        sqlServer = DriverManager.getConnection("jdbc:postgresql://localhost:5432/bddd", "postgres", "root");
+        sqlServer = DriverManager.getConnection(args[0], args[1] , args[2]);
         Sha1 = MessageDigest.getInstance("Sha1");
 
         PreparedStatement statement = sqlServer.prepareStatement(createScript);
@@ -67,15 +73,16 @@ public class DataBase {
             return Instance;
         }
         catch (Exception e){
+            e.printStackTrace();
             return null;
         }
     }
 
     public synchronized TreeSet<HumanBeing> getAll() throws SQLException {
         PreparedStatement preparedStatement = sqlServer.prepareStatement(
-                "SELECT * from public.HumanBeing " +
-                        "INNER JOIN public.Coordinates ON Coordinates.coor_id = HumanBeing.coordinate_id " +
-                        "INNER JOIN public.Car ON Car.car_id = HumanBeing.car_id "
+                "SELECT * from HumanBeing " +
+                        "INNER JOIN Coordinates ON Coordinates.coor_id = HumanBeing.coordinate_id " +
+                        "INNER JOIN Car ON Car.car_id = HumanBeing.car_id "
         );
 
         ResultSet set = preparedStatement.executeQuery();
@@ -105,7 +112,7 @@ public class DataBase {
 
     public synchronized void Clear() throws SQLException {
         PreparedStatement preparedStatement = sqlServer.prepareStatement(
-                "DELETE from public.HumanBeing; DELETE from public.Coordinates; DELETE from public.Car"
+                "DELETE from HumanBeing; DELETE from Coordinates; DELETE from Car"
         );
         preparedStatement.execute();
     }
@@ -115,7 +122,7 @@ public class DataBase {
         int coorId = AddCoordinates(humanBeing.getCoordinates());
 
         PreparedStatement preparedStatement = sqlServer.prepareStatement(
-                "INSERT INTO public.HumanBeing(" +
+                "INSERT INTO HumanBeing(" +
                         "name, coordinate_id, carid, creationdate, realhero, hastoothpick, impactspeed, weapontype, mood, IdCreator)" +
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
         );
@@ -133,7 +140,7 @@ public class DataBase {
         preparedStatement.execute();
     }
     public synchronized int AddCoordinates(Coordinates c) throws SQLException {
-        PreparedStatement preparedStatement = sqlServer.prepareStatement("INSERT INTO public.Coordinates" +
+        PreparedStatement preparedStatement = sqlServer.prepareStatement("INSERT INTO Coordinates" +
                 "(coordinates_x, coordinates_y)" +
                 "VALUES (?, ?) RETURNING coordinates_id");
         preparedStatement.setDouble(1, c.getX());
@@ -143,7 +150,7 @@ public class DataBase {
         return s.getInt(1);
     }
     public synchronized int AddCar(Car c) throws SQLException {
-        PreparedStatement preparedStatement = sqlServer.prepareStatement("INSERT INTO public.Car" +
+        PreparedStatement preparedStatement = sqlServer.prepareStatement("INSERT INTO Car" +
                 "(car_cool)" +
                 "VALUES (?) RETURNING car_id");
         preparedStatement.setBoolean(1, c.getCool());
@@ -155,7 +162,7 @@ public class DataBase {
 
     public synchronized void AddUser(String login, String password) throws SQLException {
         PreparedStatement preparedStatement = sqlServer.prepareStatement(
-                "INSERT INTO public.Users(" +
+                "INSERT INTO Users(" +
                         "login, password)" +
                         "VALUES (?, ?)"
         );
@@ -167,7 +174,7 @@ public class DataBase {
     public synchronized Integer Login(String login, String password){
         try {
             PreparedStatement preparedStatement = sqlServer.prepareStatement(
-                    "SELECT * FROM public.Users where login = ? AND password = ?"
+                    "SELECT * FROM Users where login = ? AND password = ?"
             );
             preparedStatement.setString(1, login);
             preparedStatement.setString(2, new BigInteger(1, Sha1.digest(password.getBytes())).toString(16));
@@ -183,7 +190,7 @@ public class DataBase {
 
     public void Remove(Long id)throws Exception{
         PreparedStatement preparedStatement = sqlServer.prepareStatement(
-                "DELETE from public.HumanBeing where id = ?"
+                "DELETE from HumanBeing where id = ?"
         );
         preparedStatement.setLong(1, id);
         preparedStatement.execute();

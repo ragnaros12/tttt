@@ -14,7 +14,7 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        Client client = new Client("127.0.0.1", 1002);
+        Client client = new Client("localhost", 1080);
         client.connect();
 
         ConsoleReadable consoleRead = new ConsoleReadable();

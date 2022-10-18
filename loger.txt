@@ -1,1 +1,6 @@
 12:23:25.097 [main] INFO  org.server.Main - сервер стартовал
+19:58:08.334 [main] INFO  org.server.Main - сервер стартовал
+21:06:14.842 [main] ERROR org.server.Main - сервер сдох =) Cannot assign requested address: JVM_Bind
+21:06:27.465 [main] ERROR org.server.Main - сервер сдох =) Cannot assign requested address: JVM_Bind
+21:06:36.221 [main] ERROR org.server.Main - сервер сдох =) Cannot assign requested address: JVM_Bind
+21:06:52.441 [main] INFO  org.server.Main - сервер стартовал

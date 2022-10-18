@@ -62,14 +62,16 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
+        DataBase.setArgs(args);
         Tree.getTreeManager().setHumanBeings(DataBase.getInstance().getAll());
 
-        server = new Server("localhost", 1002);
+        server = new Server("192.168.10.80", 1050);
         try {
             server.startServer();
             logger.info("сервер стартовал");
             receive.execute(Main::ReceiveFunc);
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error("сервер сдох =) " + e.getMessage());
         }
 
